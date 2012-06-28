@@ -3,13 +3,65 @@
     <head>
         <meta charset="utf-8">
         <title>car2go finder</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+            }
+            body {
+                background: #000;
+            }
+            #map {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
     </head>
     <body>
-        <h1>car2go finder</h1>
+        <div id="map"></div>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
+        <script src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
         <script>
             $(function() {
-                alert('yo');
+                var map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 14,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    center: new google.maps.LatLng(52.5191710,13.40609120),
+                    backgroundColor: '#000',
+                    disableDefaultUI: true
+                });
+                var currentPosition,
+                    currentPositionCircle;
+                
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    currentPosition = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                    map.setCenter(currentPosition);
+                    currentPositionCircle = new google.maps.Circle({
+                        map: map,
+                        center: currentPosition,
+                        fillColor: "#0000FF",
+                        fillOpacity: 0.8,
+                        strokeWeight: 0,
+                        radius: 5
+                    });
+                });
+                
+                $.getJSON('http://jsonp.pb.io/http://kar2go.me/getInitData/Berlin?callback=?', function(data) {
+                    $.each(data.placemarks, function(i, placemark) {
+                        var latlng = new google.maps.LatLng(placemark.coordinates[1], placemark.coordinates[0]);
+                        var marker = new google.maps.Marker({
+                            position: latlng,
+                            map: map,
+                            title: placemark.address
+                        });
+                    });
+                });
             });
         </script>
     </body>
